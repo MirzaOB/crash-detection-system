@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Crash Detection System</title>
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': {
+                            50: '#EFF6FF',
+                            100: '#DBEAFE',
+                            500: '#3B82F6',
+                            600: '#2563EB',
+                            700: '#1D4ED8',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Chart.js via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 min-h-screen p-4 transition-colors duration-300">
+    <div class="max-w-md mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden md:max-w-2xl transition-colors duration-300">
+        <div class="p-8">
+            <div class="flex justify-between items-center">
+                <div class="uppercase tracking-wide text-sm text-indigo-500 dark:text-indigo-400 font-semibold">Mobile Crash Detection System</div>
+                <button id="theme-toggle" class="flex items-center justify-center w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-300">
+                    <svg id="moon-icon" class="w-5 h-5 hidden dark:block" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+                    </svg>
+                    <svg id="sun-icon" class="w-5 h-5 block dark:hidden" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path>
+                    </svg>
+                </button>
+            </div>
+            <h1 class="block mt-1 text-lg leading-tight font-medium text-black dark:text-white">Real-time Accelerometer Monitor</h1>
+            
+            <!-- Status Indicator -->
+            <div class="mt-6 flex items-center">
+                <div class="mr-2">Status:</div>
+                <div id="status-indicator" class="status-indicator bg-gray-300">Inactive</div>
+            </div>
+            
+            <!-- Current Acceleration Values -->
+            <div class="mt-4 grid grid-cols-2 gap-2 text-sm">
+                <div class="p-2 bg-gray-50 dark:bg-gray-700 rounded text-gray-800 dark:text-gray-200 transition-colors duration-300">X-axis: <span id="x-value">0.00</span> m/s²</div>
+                <div class="p-2 bg-gray-50 dark:bg-gray-700 rounded text-gray-800 dark:text-gray-200 transition-colors duration-300">Y-axis: <span id="y-value">0.00</span> m/s²</div>
+                <div class="p-2 bg-gray-50 dark:bg-gray-700 rounded text-gray-800 dark:text-gray-200 transition-colors duration-300">Z-axis: <span id="z-value">0.00</span> m/s²</div>
+                <div class="p-2 bg-gray-50 dark:bg-gray-700 rounded text-gray-800 dark:text-gray-200 font-bold transition-colors duration-300">Total: <span id="total-value">0.00</span> m/s²</div>
+            </div>
+            
+            <!-- Acceleration Graph -->
+            <div class="mt-6">
+                <h2 class="text-md font-medium text-black dark:text-white mb-2 transition-colors duration-300">Acceleration Graph</h2>
+                <div class="bg-gray-50 dark:bg-gray-700 p-2 rounded transition-colors duration-300">
+                    <canvas id="acceleration-chart" height="200"></canvas>
+                </div>
+            </div>
+            
+            <!-- Start/Stop Button -->
+            <div class="mt-6">
+                <button id="detection-button" 
+                        class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition duration-300 hover:scale-105 w-full">
+                    Start Detection
+                </button>
+            </div>
+            
+            <!-- Crash Alert (hidden by default) -->
+            <div id="crash-alert" class="mt-6 p-4 bg-red-100 dark:bg-red-900 border border-red-500 text-red-700 dark:text-red-300 rounded hidden animate-pulse transition-colors duration-300">
+                <div class="font-bold">Crash Detected!</div>
+                <div>High acceleration detected. Are you okay?</div>
+                <div class="mt-2">Calling emergency services in <span id="countdown">5</span> seconds...</div>
+                <div class="mt-2 flex space-x-2">
+                    <button id="cancel-alert" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition duration-300 hover:scale-105">
+                        Cancel
+                    </button>
+                    <button id="call-now" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition duration-300 hover:scale-105">
+                        Call Now
+                    </button>
+                </div>
+            </div>
+            
+            <!-- API Support Message (shown if DeviceMotion is not supported) -->
+            <div id="api-support-message" class="mt-4 p-2 text-center text-red-600 dark:text-red-400 text-sm hidden transition-colors duration-300">
+                DeviceMotion API is not supported on this device.
+            </div>
+        </div>
+    </div>
+    
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

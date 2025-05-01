@@ -32,6 +32,10 @@ A web application that uses a mobile device's accelerometer to detect potential 
 - Flask 3.0.3
 - Mobile device with accelerometer and modern browser
 
+## Live Demo
+
+Check out the live demo [here](https://crashdetectionbymirza.glitch.me/)
+
 ## License
 
 MIT License

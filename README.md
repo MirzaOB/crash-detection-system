@@ -34,4 +34,8 @@ A web application that uses a mobile device's accelerometer to detect potential 
 
 ## License
 
-[Choose appropriate license]
+MIT License
+
+Copyright (c) 2025 [Mirza Owais]
+
+Permission is hereby granted, free of charge, to any person obtaining a copy...
